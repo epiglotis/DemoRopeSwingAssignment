@@ -19,8 +19,6 @@ public class PlayerController : MonoBehaviour {
     [SerializeField]
     private Rigidbody playerRigidbody;
     [SerializeField]
-    private PlayerFollower playerFollower;
-    [SerializeField]
     private GameObject pointPrefab;
 
     [SerializeField]
@@ -31,42 +29,52 @@ public class PlayerController : MonoBehaviour {
 
     [Header ("CustomizedVariables")]
     [SerializeField] Transform playerT;
-    [SerializeField] GameObject WholeBlockPrefab;
-    [SerializeField] float speed = 20;
-    private bool m_bIsSwinging;
-    private bool m_bHasStarted;
-    private Vector3 m_RopeDest;
-    private bool isPointerUp;
+    [SerializeField] float speed = 5;
+    private bool isGameStarted;
+    private Vector3 lineDestination;
+    [Header ("GameVariables")]
+    [SerializeField] FloatVariable scoreCounter;
+    [SerializeField] FloatVariable highScoreCounter;
 
     
 
 	void Start ()
     {
         BlockCreator.GetSingleton().Initialize(32, blockPrefab, pointPrefab,playerT);
-        // BlockCreator.GetSingleton().Initialize(16, WholeBlockPrefab, pointPrefab,this.gameObject.transform);
-        m_bHasStarted = false;//
-        m_bIsSwinging = false;
+
+        isGameStarted = false;
         lRenderer.enabled = true;
         RaycastHit hit;
+
         if (Physics.Raycast(transform.position, transform.up, out hit))
         {
-            m_RopeDest = hit.point;
+            lineDestination = hit.point;
         }
-        // Start swinging
-        StartCoroutine(InitialSwing());
 
-        FindRelativePosForHingeJoint(new Vector3(0,10,0),null);
+        StartCoroutine(FirstSwing());               // We want the ball to start swinging just before the game starts
+
+        FindRelativePosForHingeJoint(Vector3.up * 10);      //First attach the ball to the first upper block
 	}
 	
-    public void FindRelativePosForHingeJoint(Vector3 blockPosition, Rigidbody blockRigidbody)
+    public void FindRelativePosForHingeJoint(Vector3 blockPosition)
     {
         //Update the block position on this line in a proper way to Find Relative position for our blockPosition
+        
+        StartCoroutine(CreateHingeJoint(blockPosition));                 //Creates new joint
+        
+    }
+
+    IEnumerator CreateHingeJoint(Vector3 blockPosition){
+        
         hJoint = gameObject.AddComponent<HingeJoint>();
-        hJoint.anchor = transform.InverseTransformPoint(blockPosition);
-        hJoint.connectedBody = blockRigidbody;
+        hJoint.anchor = transform.InverseTransformPoint(blockPosition);         //gets blockPosition's local position
         lRenderer.SetPosition(1, hJoint.anchor);
         lRenderer.enabled = true;
-        playerRigidbody.velocity = Vector3.Cross(-transform.right, (transform.position - m_RopeDest).normalized) * speed;
+        //Vector3.Cross makes possible for us to swing around the axis of the vectors.
+        playerRigidbody.velocity = Vector3.Cross(-transform.right, (transform.position - lineDestination).normalized) * speed;
+        yield return new WaitForSecondsRealtime(0.3f);
+          
+
     }
 
     
@@ -76,64 +84,36 @@ public class PlayerController : MonoBehaviour {
         //This function works once when player holds on the screen
         //FILL the behaviour here when player holds on the screen. You may or not call other functions you create here or just fill it here
 
-        m_bIsSwinging = true;
         lRenderer.enabled = true;
         playerRigidbody.useGravity = false;
 
 
-        if (!m_bHasStarted)
+        if (!isGameStarted)
         {
-            // InitialSwing coroutine is watching this.
-            // mark HasStarted to discontinue swing
-            m_bHasStarted = true;
+            // When game starts FirstSwing Coroutine shouldn't be working
+            isGameStarted = true;
             Destroy(hJoint);
         }
         else
         {
-            // Cast a ray to forward/up
+            // Ray the way we are going and up
             RaycastHit hit;
             
             if (Physics.Raycast(transform.position, (Vector3.forward + Vector3.up).normalized , out hit))
             {
 
                 if(hit.collider.CompareTag("Block")){
-                    Debug.Log(hit.collider.gameObject);
-
-                    m_RopeDest = hit.collider.gameObject.GetComponent<BlockController>().GetAnchorPosition();
-                    Rigidbody blockRigidbody = hit.collider.gameObject.GetComponent<Rigidbody>();
                     
-                    FindRelativePosForHingeJoint(m_RopeDest,blockRigidbody);
+                    //If we hit a "Block" get that blocks JointPos and start creating our new hinge joint with a correct anchor
+                    lineDestination = hit.collider.gameObject.GetComponent<BoxController>().FindRelativeJointPos();
+                    FindRelativePosForHingeJoint(lineDestination);
 
                 }
-                // Record where to shoot line, our latest pivot point
                 
             }
 
             
         }
-        isPointerUp = false;
-        
-        // if (m_bIsSwinging)
-        // {
-            
-        // // Draw the line
-        //     lRenderer.positionCount = 2;
-        //     RaycastHit hit;
-            
-        //     if (Physics.Raycast(transform.position, transform.forward + transform.up, out hit))
-        //     {   
-        //         // Record where to shoot line, our latest pivot point
-        //         m_RopeDest = hit.point;
-        //         FindRelativePosForHingeJoint(m_RopeDest);
-        //     }
-        //     // lRenderer.SetPosition(0, transform.position);
-        //     // lRenderer.SetPosition(1, m_RopeDest);
-
-        //     // Push the rigidbody around the pivot point
-        //     // playerRigidbody.velocity = Vector3.Cross(-transform.right, (transform.position - m_RopeDest).normalized) * speed;
-        //     // playerRigidbody.AddForce(Vector3.forward * speed);
-        // }
-
         
         
     }
@@ -143,12 +123,17 @@ public class PlayerController : MonoBehaviour {
         Debug.Log("Pointer Up");
         //This function works once when player takes his/her finger off the screen
         //Fill the behaviour when player stops holding the finger on the screen.
+
+        //When player stops touching the screen, destroy the joint and let the player fall
         hJoint = GetComponent<HingeJoint>();
-        m_bIsSwinging = false;
         playerRigidbody.useGravity = true;
         lRenderer.enabled = false;
-        Destroy(hJoint);
-        isPointerUp = true;
+        foreach (HingeJoint item in GetComponents<HingeJoint>())
+        {
+
+            Destroy(item);                                              //BUGFIX: When touched quickly hingejoints are created but not destroyed
+            
+        }
         
 
         
@@ -160,28 +145,20 @@ public class PlayerController : MonoBehaviour {
         {
             PointerUp(); //Finishes the game here to stoping holding behaviour
             gameOver = true;
-            guiController.scoreText.text = score.ToString("0.00");
+            scoreCounter.SetValue(score);
             //If you know a more modular way to update UI, change the code below
-            if(PlayerPrefs.HasKey("HighScore"))
+            
+            if(scoreCounter.Value > highScoreCounter.Value)
             {
-                float highestScore = PlayerPrefs.GetFloat("HighScore");
-                if(score > highestScore)
-                {
-                    PlayerPrefs.SetFloat("HighScore", score);
-                    guiController.highscoreText.text = "HighestScore: " + score.ToString("0.00");
-                }
-                else
-                {
-                    guiController.highscoreText.text = "HighestScore: " + highestScore.ToString("0.00");
-                }
+
+                highScoreCounter.SetValue(scoreCounter.Value);
+                    
             }
-            else
-            {
-                PlayerPrefs.SetFloat("HighScore", score);
-                guiController.highscoreText.text = "HighestScore: " + score.ToString("0.00");
-            }
-            guiController.gameOverPanel.SetActive(true);
+        
         }
+            
+            guiController.gameOverPanel.SetActive(true);
+        
     }
     
     private void OnTriggerEnter(Collider other)
@@ -190,12 +167,17 @@ public class PlayerController : MonoBehaviour {
         {
             if(Vector3.Distance(transform.position, other.gameObject.transform.position) < .5f)
             {
-                score += 10f;
+
+                scoreCounter.Increase(10f);
+
             }
             else
             {
-                score += 5f;
+
+                scoreCounter.Increase(5f);
+
             }
+
             other.gameObject.SetActive(false);
         }
     }
@@ -207,24 +189,24 @@ public class PlayerController : MonoBehaviour {
         
     }
     public void SetScore()
-    {
+    {   if(gameOver) return;                    //BUGFIX: After game ends, score keeps going up or down
         score += playerRigidbody.velocity.z * Time.fixedDeltaTime * 0.1f;
-        guiController.realtimeScoreText.text = score.ToString("0.00");
+        scoreCounter.SetValue(score);
     }
 
-    private IEnumerator InitialSwing()
+    private IEnumerator FirstSwing()
     {
-        // Remember the original speed value
+        // Keep the speed value due to the fact that we will need it later
         float initialSpeed = speed;
         float elapsedTime = 0;
-        while(!m_bHasStarted)
+        while(!isGameStarted)
         {
             // Change speed value
             speed = Mathf.PingPong(elapsedTime * initialSpeed, initialSpeed * 2) - initialSpeed;
             elapsedTime += Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
-        // Done swinging. Restore speed value
+        // This is the moment we need the speed value when we are done swinging
         speed = initialSpeed;
     }
 }

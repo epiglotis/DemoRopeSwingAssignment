@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class BoxController : MonoBehaviour
 {
-    public HingeJoint hJoint;
-    public LineRenderer lRenderer;
+    [SerializeField] Transform anchorTransform;
 
-    public void FindRelativeJointPos(Vector3 blockPosition)
+    public Vector3 FindRelativeJointPos()
     {
-        //Calculate RelativeJointPosition here
+        return anchorTransform.position;
     }
 }

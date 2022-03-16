@@ -48,7 +48,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &7144897089115861143
+--- !u!114 &1044158925785907385
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -57,7 +57,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 4380062727554128122}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3911fc39f8db50d4696126630672b2c1, type: 3}
+  m_Script: {fileID: 11500000, guid: 1b5407e576c384f898e03d2989afdc79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   anchorTransform: {fileID: 2884130780132481263}
@@ -104,11 +104,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1746410748528694, guid: 4ad0ea7f5df80af4699822d77dc5b121, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1746410748528694, guid: 4ad0ea7f5df80af4699822d77dc5b121, type: 3}
       propertyPath: m_TagString
-      value: Untagged
+      value: Block
       objectReference: {fileID: 0}
     - target: {fileID: 4008198789088862, guid: 4ad0ea7f5df80af4699822d77dc5b121, type: 3}
       propertyPath: m_RootOrder

@@ -9,7 +9,6 @@ public class PlayerFollower : MonoBehaviour {
     [SerializeField] private Transform player;
     private float zDifference;
     private float yDifference;
-    Vector3 offset;
     Vector3 velocity = Vector3.zero;
 
     private void Start() {
@@ -25,8 +24,6 @@ public class PlayerFollower : MonoBehaviour {
         yDifference = player.transform.position.y - transform.position.y;
         
     }
-
-    int lastPassageIndex = 15;
     private void Update()
     {
         if(player != null)
@@ -34,11 +31,6 @@ public class PlayerFollower : MonoBehaviour {
             Vector3 targetPosition = player.position - new Vector3(0,yDifference,zDifference);
             Vector3 currentPos = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, 0);
             transform.position = new Vector3(transform.position.x, currentPos.y, currentPos.z);
-
-            // transform.position = new Vector3(transform.position.x, player.position.y + yDifference, player.position.z + zDifference);
-            // BlockCreator.GetSingleton().UpdateBlockPosition(lastPassageIndex); //You may call update block position here to make it an infinite map.
-            //Hint:
-            //It must be called when it is really needed in a very optimized way.
         }
     }
 

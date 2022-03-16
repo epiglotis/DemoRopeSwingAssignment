@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14c7afabdc8eeb74980ec901f248ea66, type: 3}
+  m_Name: HighScoreCounter
+  m_EditorClassIdentifier: 
+  eventInfo: 
+  useInitialValue: 1
+  initialValue: 0
+  useVariableLimits: 1
+  minValue: 0
+  maxValue: 9999999
+  VariableDescription: "What sets this object: \n-\"Player\" object's \"Player Controller\"
+    script\nWhat reads this object's values: \n-\"HighscoreText\" object's \"ScoreTextController\"
+    script\n\nThis gets set when player gets any points during the game. This gets
+    set when player reaches higher score then this object's value."
